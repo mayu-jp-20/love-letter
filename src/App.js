@@ -3,6 +3,10 @@ import React, { useEffect } from "react";
 import { useState } from 'react';
 import { ethers } from "ethers";
 import generateNFT from "./utils/GenerateNFT.json";
+import { Box } from '@mui/material';
+import TextField from '@mui/material/TextField';
+import UnstyledInputBasic from './components/customInput';
+import { ConstructorFragment } from 'ethers/lib/utils';
 
 // Constantsを宣言する: constとは値書き換えを禁止した変数を宣言する方法です。
 const OPENSEA_LINK = '';
@@ -11,6 +15,13 @@ const TOTAL_MINT_COUNT = 50;
 const App = () => {
 
   const [currentAccount, setCurrentAccount] = useState("");
+  const [name, setName] = useState("");
+  const [typeOfPerson, setTypeOfPerson] = useState("");
+
+  function handleNameChange(props) {
+    const {value} = props.target.value;
+    setName(value);
+  }
 
   const checkIfWalletIsConnected = async () => {
     const { ethereum } = window;
@@ -83,6 +94,8 @@ const App = () => {
     </button>
   );
 
+
+
   useEffect(() => {
     checkIfWalletIsConnected();
   }, []);
@@ -91,16 +104,44 @@ const App = () => {
     <div className="App">
       <div className="container">
         <div className="header-container">
-          <p className="header gradient-text">My NFT Collection</p>
           <p className="sub-text">
-            あなただけの特別な NFT を Mint しよう💫
+            Mint Valentine Day's Love Letter NFT💕
           </p>
+          <p className="header gradient-text">Love Letter Generative NFT Collection</p>
           {currentAccount === ""
             ? renderNotConnectedContainer()
             : (
-              <button onClick={askContractToMintNFT} className="cta-button connect-wallet-button">
-                Mint NFT
-              </button>
+              <div>
+                <Box component="form" sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  '& .MuiTextField-root': { m: 1, width: '25ch' },
+                }}
+                  noValidate
+                  autoComplete="off">
+                  <div>
+                    <RedBar />
+                    <p>What kind of person would you like to receive a love letter from?</p>
+                    <UnstyledInputBasic/>
+                  </div>
+                  <div>
+                    <RedBar />
+                    <p>What is Your Name?</p>
+                    <TextField
+                      className='parameter'
+                      required
+                      id="outlined-required"
+                      label="Required"
+                      value={name}
+                      onChange={handleNameChange}
+                    />
+                  </div>
+                </Box>
+                <RedBar />
+                <button onClick={askContractToMintNFT} className="cta-button connect-wallet-button">
+                  Mint Letter
+                </button>
+              </div>
             )
           }
         </div>
@@ -110,3 +151,14 @@ const App = () => {
 };
 
 export default App;
+
+
+function RedBar() {
+  return (
+    <Box
+      sx={{
+        height: 50,
+      }}
+    />
+  );
+}
