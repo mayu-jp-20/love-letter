@@ -7,6 +7,7 @@ import { Box } from '@mui/material';
 import TextField from '@mui/material/TextField';
 import UnstyledInputBasic from './components/customInput';
 import { ConstructorFragment } from 'ethers/lib/utils';
+import { TextareaAutosize } from '@mui/material';
 
 // Constantsを宣言する: constとは値書き換えを禁止した変数を宣言する方法です。
 const OPENSEA_LINK = '';
@@ -18,24 +19,16 @@ const App = () => {
   const [name, setName] = useState("");
   const [typeOfPerson, setTypeOfPerson] = useState("");
 
-  function handleNameChange(props) {
-    const {value} = props.target.value;
-    setName(value);
-  }
-
   const checkIfWalletIsConnected = async () => {
     const { ethereum } = window;
     if (!ethereum) {
       console.log("Make sure you have Metamask!");
       return;
-    } else {
-      console.log("We have the ethereum object", ethereum);
     }
 
     const accounts = await ethereum.request({ method: "eth_accounts" });
     if (accounts.length !== 0) {
       const account = accounts[0];
-      console.log("Found an authorized account:", account);
       setCurrentAccount(account);
     } else {
       console.log("No authorized account found");
@@ -62,8 +55,11 @@ const App = () => {
     }
   }
 
-  const askContractToMintNFT = async () => {
+  const askContractToMintNFT = async (name,typeOfPerson) => {
     const CONTRACT_ADDRESS = "0x4eE0aa65Baa6adCFC0b089E669FBa189D7bd4D65";
+
+    name = name.name;
+    typeOfPerson = typeOfPerson.typeOfPerson;
 
     try {
       const { ethereum } = window;
@@ -122,7 +118,15 @@ const App = () => {
                   <div>
                     <RedBar />
                     <p>What kind of person would you like to receive a love letter from?</p>
-                    <UnstyledInputBasic/>
+                    <TextareaAutosize
+                      aria-label="empty textarea"
+                      placeholder="Empty"
+                      style={{ width: 200 }}
+                      value={typeOfPerson}
+                      onChange={(e) => {
+                        setTypeOfPerson(e.target.value)
+                      }}
+                    />
                   </div>
                   <div>
                     <RedBar />
@@ -133,12 +137,17 @@ const App = () => {
                       id="outlined-required"
                       label="Required"
                       value={name}
-                      onChange={handleNameChange}
+                      onChange={(e) => {
+                        setName(e.target.value)
+                      }}
                     />
                   </div>
                 </Box>
                 <RedBar />
-                <button onClick={askContractToMintNFT} className="cta-button connect-wallet-button">
+                <button onClick={() => {
+                  askContractToMintNFT({name},{typeOfPerson})
+                }
+                } className="cta-button connect-wallet-button">
                   Mint Letter
                 </button>
               </div>

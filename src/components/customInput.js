@@ -76,11 +76,6 @@ const StyledTextareaElement = styled('textarea', {
 `,
 );
 
-function handlePersonChange(props) {
-    const { value } = props.target.value;
-    console.log("Person:", value);
-    setTypeOfPerson(value);
-  }
 
 const CustomInput = React.forwardRef(function CustomInput(
 ) {
