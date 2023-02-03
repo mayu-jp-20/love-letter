@@ -5,19 +5,17 @@ import { ethers } from "ethers";
 import generateNFT from "./utils/GenerateNFT.json";
 import { Box } from '@mui/material';
 import TextField from '@mui/material/TextField';
-import UnstyledInputBasic from './components/customInput';
-import { ConstructorFragment } from 'ethers/lib/utils';
 import { TextareaAutosize } from '@mui/material';
+import axios from 'axios';
 
-// Constantsを宣言する: constとは値書き換えを禁止した変数を宣言する方法です。
-const OPENSEA_LINK = '';
-const TOTAL_MINT_COUNT = 50;
+const key = process.env.REACT_APP_OPENAI_API_KEY
 
 const App = () => {
 
   const [currentAccount, setCurrentAccount] = useState("");
   const [name, setName] = useState("");
   const [typeOfPerson, setTypeOfPerson] = useState("");
+  const [hope, setHope] = useState("");
 
   const checkIfWalletIsConnected = async () => {
     const { ethereum } = window;
@@ -46,7 +44,6 @@ const App = () => {
       const accounts = await ethereum.request({
         method: "eth_requestAccounts",
       });
-      console.log("Connected", accounts[0]);
 
       setCurrentAccount(accounts[0]);
 
@@ -55,13 +52,35 @@ const App = () => {
     }
   }
 
-  const askContractToMintNFT = async (name,typeOfPerson) => {
+  const askContractToMintNFT = async (name, typeOfPerson,hope) => {
     const CONTRACT_ADDRESS = "0x4eE0aa65Baa6adCFC0b089E669FBa189D7bd4D65";
 
     name = name.name;
     typeOfPerson = typeOfPerson.typeOfPerson;
+    hope = hope.hope
+
+    const payload = {
+      prompt: `次の条件でラブレターを書いてください。宛名は${name}。${name}は${typeOfPerson}。差出人が望んでいることは、${hope}`,
+      max_tokens: 500,
+      temperature: 0.5,
+      n: 1,
+      model: "text-davinci-002"
+    }
 
     try {
+      axios({
+        method: "POST",
+        url: "https://api.openai.com/v1/completions",
+        data: payload,
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: key
+        }
+      })
+        .then((res) => {
+          console.log(res.data.choices[0].text);
+        })
+
       const { ethereum } = window;
       const provider = new ethers.providers.Web3Provider(ethereum);
       const signer = provider.getSigner();
@@ -142,10 +161,23 @@ const App = () => {
                       }}
                     />
                   </div>
+                  <div>
+                    <RedBar />
+                    <p>相手はあなたにどんな望みやお願いを持っていますか?</p>
+                    <TextareaAutosize
+                      aria-label="empty textarea"
+                      placeholder="Empty"
+                      style={{ width: 200 }}
+                      value={hope}
+                      onChange={(e) => {
+                        setHope(e.target.value)
+                      }}
+                    />
+                  </div>
                 </Box>
                 <RedBar />
                 <button onClick={() => {
-                  askContractToMintNFT({name},{typeOfPerson})
+                  askContractToMintNFT({ name }, { typeOfPerson },{hope})
                 }
                 } className="cta-button connect-wallet-button">
                   Mint Letter
