@@ -13,14 +13,15 @@ const key = process.env.REACT_APP_OPENAI_API_KEY
 const App = () => {
 
   const [currentAccount, setCurrentAccount] = useState("");
-  const [name, setName] = useState("");
-  const [typeOfPerson, setTypeOfPerson] = useState("");
-  const [hope, setHope] = useState("");
+  const [toName, setToName] = useState("");
+  const [fromName, setFromName] = useState("");
+  const [description, setDescription] = useState("");
+  const [message, setMessage] = useState("");
 
   const checkIfWalletIsConnected = async () => {
     const { ethereum } = window;
     if (!ethereum) {
-      console.log("Make sure you have Metamask!");
+      alert("Make sure you have Metamask!");
       return;
     }
 
@@ -29,7 +30,7 @@ const App = () => {
       const account = accounts[0];
       setCurrentAccount(account);
     } else {
-      console.log("No authorized account found");
+      alert("No authorized account found");
     }
   };
 
@@ -48,26 +49,34 @@ const App = () => {
       setCurrentAccount(accounts[0]);
 
     } catch (error) {
-      console.log(error);
+      alert("error,Please try again");
     }
   }
 
-  const askContractToMintNFT = async (name, typeOfPerson,hope) => {
-    const CONTRACT_ADDRESS = "0x4eE0aa65Baa6adCFC0b089E669FBa189D7bd4D65";
+  const askContractToMintNFT = async (toName, fromName, description, currentAccount) => {
+    const CONTRACT_ADDRESS = "0xcaaC3e99123A42c32Bff75712Bd1B0De11be0332";
 
-    name = name.name;
-    typeOfPerson = typeOfPerson.typeOfPerson;
-    hope = hope.hope
+    toName = toName.toName;
+    fromName = fromName.fromName;
+    description = description.description;
 
     const payload = {
-      prompt: `次の条件でラブレターを書いてください。宛名は${name}。${name}は${typeOfPerson}。差出人が望んでいることは、${hope}`,
-      max_tokens: 500,
+      prompt: "次の条件でラブレターを書いてください。文字数は絶対に800字以上1000字未満にしてください"+
+        `宛名：${toName} `+
+        `差出人：${fromName} `+
+        `２人の思い出や今後どうなりたいかなど：${description} `+
+        "文字数：1000文字以上1500字以内 "+
+        "1文50字以内",
+      max_tokens: 1500,
       temperature: 0.5,
       n: 1,
-      model: "text-davinci-002"
+      model: "text-davinci-003"
     }
 
+    let sentense="";
+
     try {
+      setMessage('Writing love letter. It may take about 1min... please wait until metamask window show up.')
       axios({
         method: "POST",
         url: "https://api.openai.com/v1/completions",
@@ -78,27 +87,32 @@ const App = () => {
         }
       })
         .then((res) => {
-          console.log(res.data.choices[0].text);
+          sentense = String(res.data.choices[0].text);
+          let customWord = sentense.split('.').join('.</tspan><tspan x="0" dy="1.2em">')
+          customWord = customWord.split('。').join('.</tspan><tspan x="0" dy="1.2em">')
+
+          const { ethereum } = window;
+          const provider = new ethers.providers.Web3Provider(ethereum);
+          const signer = provider.getSigner();
+          const connectedContract = new ethers.Contract(
+            CONTRACT_ADDRESS,
+            generateNFT.abi,
+            signer
+          );
+        
+          connectedContract.generateNFT(customWord)
+          .then((res) => {
+            setMessage(`Check transaction: https://goerli.etherscan.io/tx/${res.hash}`)
+          });
+        
+        })
+        .catch(error => {
+          alert("error. Please try again.");
         })
 
-      const { ethereum } = window;
-      const provider = new ethers.providers.Web3Provider(ethereum);
-      const signer = provider.getSigner();
-      const connectedContract = new ethers.Contract(
-        CONTRACT_ADDRESS,
-        generateNFT.abi,
-        signer
-      );
-      console.log("Going to pop wallet now to pay gas...");
-      let nftTxn = await connectedContract.generateNFT();
-      console.log("Mining...please wait.");
-      await nftTxn.wait();
 
-      console.log(
-        `Mined, see transaction: https://goerli.etherscan.io/tx/${nftTxn.hash}`
-      );
     } catch (error) {
-      console.log(error);
+      alert("error, Please try again");
     }
   }
 
@@ -122,7 +136,7 @@ const App = () => {
           <p className="sub-text">
             Mint Valentine Day's Love Letter NFT💕
           </p>
-          <p className="header gradient-text">Love Letter Generative NFT Collection</p>
+          <p className="header gradient-text">Love Letter Generative NFT</p>
           {currentAccount === ""
             ? renderNotConnectedContainer()
             : (
@@ -136,52 +150,52 @@ const App = () => {
                   autoComplete="off">
                   <div>
                     <RedBar />
-                    <p>What kind of person would you like to receive a love letter from?</p>
-                    <TextareaAutosize
-                      aria-label="empty textarea"
-                      placeholder="Empty"
-                      style={{ width: 200 }}
-                      value={typeOfPerson}
-                      onChange={(e) => {
-                        setTypeOfPerson(e.target.value)
-                      }}
-                    />
-                  </div>
-                  <div>
-                    <RedBar />
-                    <p>What is Your Name?</p>
+                    <p>宛名（To）</p>
                     <TextField
                       className='parameter'
-                      required
                       id="outlined-required"
-                      label="Required"
-                      value={name}
+                      value={toName}
                       onChange={(e) => {
-                        setName(e.target.value)
+                        setToName(e.target.value)
                       }}
                     />
                   </div>
                   <div>
                     <RedBar />
-                    <p>相手はあなたにどんな望みやお願いを持っていますか?</p>
+                    <p>差出人（From）</p>
+                    <TextField
+                      className='parameter'
+                      id="outlined-required"
+                      value={fromName}
+                      onChange={(e) => {
+                        setFromName(e.target.value)
+                      }}
+                    />
+                  </div>
+                  <div>
+                    <RedBar />
+                    <p>２人の思い出や今後どうなりたいかなど。細かく書くほど感動的なラブレターができます</p>
+                    <p>（Memories of between of two and what you want for the future,etc）</p>
                     <TextareaAutosize
                       aria-label="empty textarea"
                       placeholder="Empty"
                       style={{ width: 200 }}
-                      value={hope}
+                      value={description}
                       onChange={(e) => {
-                        setHope(e.target.value)
+                        setDescription(e.target.value)
                       }}
                     />
                   </div>
                 </Box>
                 <RedBar />
                 <button onClick={() => {
-                  askContractToMintNFT({ name }, { typeOfPerson },{hope})
+                  askContractToMintNFT({ toName }, { fromName }, { description }, { currentAccount })
                 }
                 } className="cta-button connect-wallet-button">
                   Mint Letter
                 </button>
+                <RedBar/>
+                <p>{message}</p>
               </div>
             )
           }
