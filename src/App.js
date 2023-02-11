@@ -74,7 +74,6 @@ const App = () => {
     }
 
     let sentense="";
-    console.log("key:",key);
 
     try {
       setMessage('Writing love letter. It may take about 1min... please wait until metamask window show up.')
@@ -103,7 +102,7 @@ const App = () => {
         
           connectedContract.generateNFT(customWord)
           .then((res) => {
-            setMessage(`Check transaction: https://goerli.etherscan.io/tx/${res.hash}`)
+            setMessage(`Check transaction: https:/polygonscan.com//tx/${res.hash}`)
           });
         
         })
