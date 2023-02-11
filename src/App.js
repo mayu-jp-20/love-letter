@@ -54,7 +54,7 @@ const App = () => {
   }
 
   const askContractToMintNFT = async (toName, fromName, description, currentAccount) => {
-    const CONTRACT_ADDRESS = "0xcaaC3e99123A42c32Bff75712Bd1B0De11be0332";
+    const CONTRACT_ADDRESS = "0x44BDa4A952Af2D7dd32be58f3bb19a448D43d242";
 
     toName = toName.toName;
     fromName = fromName.fromName;
