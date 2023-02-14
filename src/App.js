@@ -70,7 +70,7 @@ const App = () => {
       max_tokens: 1500,
       temperature: 0.5,
       n: 1,
-      model: "text-davinci-003"
+      model: "text-davinci-002"
     }
 
     let sentense="";
@@ -107,6 +107,7 @@ const App = () => {
         
         })
         .catch(error => {
+          console.log(error);
           alert("error. Please try again.");
         })
 
